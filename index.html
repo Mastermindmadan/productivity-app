@@ -1,6 +1,8 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#121212">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>FlowDesk - Beginner Productivity App</title>
@@ -1766,6 +1768,11 @@ if (!profile) {
   document.body.classList.add("onboarding");
   document.querySelectorAll(".screen").forEach((item) => item.classList.remove("active"));
   document.getElementById("screen-welcome").classList.add("active");
+}
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js");
 }
 </script>
 </body>
