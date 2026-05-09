@@ -1,0 +1,1773 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>FlowDesk - Beginner Productivity App</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --ink: #19182b;
+  --muted: #7d8095;
+  --line: #ebeaf6;
+  --soft: #f7f6ff;
+  --purple: #6c3fe0;
+  --violet: #9b5de5;
+  --green: #2fb88f;
+  --orange: #f38a3f;
+  --blue: #3478f6;
+  --rose: #e94e77;
+}
+html, body { min-height: 100%; }
+body {
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  background: #eceafb;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+.phone-shell {
+  width: 100%;
+  max-width: 420px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: #fff;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 60px rgba(76, 55, 160, .18);
+}
+.screen {
+  display: none;
+  min-height: calc(100vh - 32px);
+  padding-bottom: 92px;
+  animation: screenIn .25s ease both;
+}
+.screen.active { display: block; }
+@keyframes screenIn { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: translateX(0); } }
+.home-header {
+  padding: 18px 22px 34px;
+  background: linear-gradient(150deg, var(--purple), var(--violet) 72%, #c071ff);
+  color: #fff;
+}
+.top-row { display: flex; justify-content: space-between; align-items: start; gap: 16px; }
+.greeting { color: rgba(255,255,255,.78); font-size: .9rem; font-weight: 600; }
+.user-name { font-size: 1.62rem; font-weight: 800; letter-spacing: 0; margin-top: 2px; }
+.avatar {
+  width: 50px; height: 50px; border-radius: 50%;
+  background: linear-gradient(135deg, #ffd166, #ef8c4f);
+  display: grid; place-items: center; color: #5a2c00; font-weight: 900;
+  border: 3px solid rgba(255,255,255,.4);
+}
+.home-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.settings-top-btn,
+.back-btn {
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255,255,255,.45);
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: rgba(255,255,255,.2);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 900;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.36);
+}
+.search-bar {
+  margin-top: 18px;
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 14px;
+  padding: 10px 14px;
+}
+.search-mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  background: rgba(255,255,255,.18);
+  color: rgba(255,255,255,.9);
+  font-size: .82rem;
+  flex: 0 0 auto;
+}
+.search-bar input { width: 100%; border: 0; outline: 0; background: transparent; color: #fff; font-weight: 600; }
+.search-bar input::placeholder { color: rgba(255,255,255,.62); }
+.home-body {
+  margin-top: -18px;
+  border-radius: 26px 26px 0 0;
+  background: #fff;
+  padding: 22px 20px 16px;
+}
+.section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.section-title { font-size: 1.02rem; font-weight: 800; letter-spacing: 0; }
+.link-btn { border: 0; background: transparent; color: var(--purple); font-size: .78rem; font-weight: 800; }
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 22px; }
+.stat-card {
+  min-height: 94px; border-radius: 16px; padding: 13px 12px;
+  color: #fff; display: flex; flex-direction: column; justify-content: space-between;
+}
+.stat-card.tasks { background: linear-gradient(145deg, #e94e77, #c93662); }
+.stat-card.habits { background: linear-gradient(145deg, #2fb88f, #18886d); }
+.stat-card.focus { background: linear-gradient(145deg, #3478f6, #1b55c6); }
+.stat-icon { width: 30px; height: 30px; border-radius: 10px; background: rgba(255,255,255,.24); display: grid; place-items: center; font-weight: 900; }
+.stat-name { font-size: .75rem; font-weight: 700; opacity: .86; }
+.stat-value { font-size: 1.2rem; font-weight: 900; }
+.task-input-row, .add-task-row {
+  display: flex; gap: 8px; margin-bottom: 14px;
+}
+.task-input-row input, .add-task-row input {
+  min-width: 0; flex: 1; border: 2px solid var(--line); background: #fbfbff;
+  border-radius: 14px; padding: 11px 13px; outline: 0; color: var(--ink);
+}
+.task-input-row input:focus, .add-task-row input:focus { border-color: var(--violet); }
+.icon-btn, .add-task-btn {
+  width: 44px; height: 44px; flex: 0 0 auto; border: 0; border-radius: 14px;
+  background: var(--ink); color: #fff; font-size: 1.15rem; font-weight: 900;
+}
+.task-list, .habit-grid, .progress-list { display: grid; gap: 10px; }
+.task-item, .focus-task, .progress-row {
+  display: flex; align-items: center; gap: 12px; border-radius: 16px;
+  background: #fbfbff; border: 1px solid #f0effa; padding: 12px;
+}
+.task-check, .focus-check {
+  width: 24px; height: 24px; border-radius: 50%; flex: 0 0 auto;
+  border: 2px solid #cfcde3; display: grid; place-items: center;
+  color: #fff; font-size: .75rem; font-weight: 900;
+}
+.task-item.done .task-check, .focus-task.done .focus-check { background: var(--green); border-color: var(--green); }
+.task-info, .focus-label, .progress-info { min-width: 0; flex: 1; }
+.task-name, .focus-label { font-size: .9rem; font-weight: 800; overflow-wrap: anywhere; }
+.task-sub, .progress-sub { font-size: .72rem; color: var(--muted); margin-top: 2px; font-weight: 600; }
+.task-item.done .task-name, .focus-task.done .focus-label { text-decoration: line-through; color: #9da0b5; }
+.delete-btn {
+  width: 30px; height: 30px; border: 0; border-radius: 10px;
+  color: #d8425d; background: #fff0f3; font-weight: 900;
+}
+.empty-state {
+  display: grid; place-items: center; text-align: center; gap: 10px;
+  padding: 32px 18px; color: var(--muted);
+}
+.empty-icon { width: 54px; height: 54px; border-radius: 18px; background: var(--soft); display: grid; place-items: center; color: var(--purple); font-size: 1.4rem; font-weight: 900; }
+.empty-title { font-size: .96rem; font-weight: 800; color: var(--ink); }
+.empty-copy { font-size: .78rem; font-weight: 600; line-height: 1.5; }
+.page-header { padding: 20px 22px 14px; border-bottom: 1px solid #f1f0f8; }
+.page-kicker { font-size: .82rem; color: var(--muted); font-weight: 700; }
+.page-title { font-size: 1.6rem; font-weight: 900; letter-spacing: 0; margin-top: 2px; }
+.week-strip { display: flex; gap: 8px; overflow-x: auto; padding: 14px 22px; scrollbar-width: none; }
+.week-strip::-webkit-scrollbar { display: none; }
+.week-day {
+  min-width: 52px; height: 62px; border-radius: 16px; display: grid; place-items: center;
+  background: #f8f7ff; color: var(--muted); font-weight: 800; font-size: .72rem;
+}
+.week-day strong { display: block; color: var(--ink); font-size: 1rem; }
+.week-day.today { background: var(--ink); color: rgba(255,255,255,.7); }
+.week-day.today strong { color: #fff; }
+.week-day.done { background: #e4fbf3; color: #18886d; }
+.week-day.done strong { color: #18886d; }
+.habit-grid { grid-template-columns: repeat(2, 1fr); padding: 4px 22px 20px; }
+.habit-card {
+  min-height: 126px; border: 0; text-align: left; border-radius: 18px; padding: 15px;
+  display: flex; flex-direction: column; justify-content: space-between; color: rgba(0,0,0,.75);
+}
+.habit-card.yellow { background: #ffd166; }
+.habit-card.pink { background: #ff9dc5; }
+.habit-card.blue { background: #a8d8ff; }
+.habit-card.green { background: #a9eecf; }
+.habit-card.orange { background: #ffb86c; }
+.habit-card.purple { background: #c9b8ff; }
+.habit-card.done { opacity: .62; }
+.habit-top { display: flex; justify-content: space-between; align-items: start; }
+.habit-icon, .habit-mark { width: 32px; height: 32px; border-radius: 11px; background: rgba(255,255,255,.42); display: grid; place-items: center; font-weight: 900; }
+.habit-name { font-size: .92rem; font-weight: 900; overflow-wrap: anywhere; }
+.habit-desc { font-size: .72rem; color: rgba(0,0,0,.52); margin-top: 3px; font-weight: 700; overflow-wrap: anywhere; }
+.habit-streak { font-size: .68rem; color: rgba(0,0,0,.48); font-weight: 800; margin-top: 8px; }
+.habit-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.habit-actions .edit-btn {
+  width: auto;
+  padding: 0 10px;
+}
+.timer-wrap { padding: 18px 22px 20px; }
+.timer-panel {
+  background: var(--ink); color: #fff; border-radius: 24px; padding: 22px;
+  display: grid; place-items: center; gap: 18px;
+}
+.timer-session { width: 100%; background: rgba(255,255,255,.08); border-radius: 16px; padding: 12px; }
+.timer-session-title { font-size: .86rem; font-weight: 900; overflow-wrap: anywhere; }
+.timer-session-sub { font-size: .72rem; color: rgba(255,255,255,.58); margin-top: 2px; }
+.timer-ring { position: relative; width: 214px; height: 214px; display: grid; place-items: center; }
+.timer-ring svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+.ring-bg, .ring-fill { fill: none; stroke-width: 12; }
+.ring-bg { stroke: rgba(255,255,255,.1); }
+.ring-fill { stroke: #ffd166; stroke-linecap: round; transition: stroke-dashoffset .4s linear; }
+.timer-time { font-size: 2.8rem; font-weight: 900; letter-spacing: 0; }
+.timer-modes { display: flex; gap: 8px; }
+.timer-modes button {
+  min-width: 44px; border: 0; border-radius: 99px; padding: 8px 10px;
+  background: rgba(255,255,255,.1); color: rgba(255,255,255,.7); font-weight: 900; font-size: .76rem;
+}
+.timer-modes button.active { background: #ffd166; color: var(--ink); }
+.timer-actions { display: flex; gap: 10px; }
+.primary-btn, .ghost-btn {
+  border: 0; border-radius: 14px; padding: 12px 18px; font-weight: 900;
+}
+.primary-btn { background: #fff; color: var(--ink); }
+.ghost-btn { background: rgba(255,255,255,.1); color: #fff; border: 1px solid rgba(255,255,255,.12); }
+.focus-list-wrap { padding: 18px 0 0; }
+.track-header {
+  background: linear-gradient(150deg, var(--purple), var(--violet));
+  color: #fff; padding: 22px 22px 28px; border-radius: 0 0 28px 28px;
+}
+.track-title { font-size: 1.45rem; font-weight: 900; }
+.track-copy { font-size: .8rem; color: rgba(255,255,255,.74); margin-top: 5px; font-weight: 600; }
+.progress-list { padding: 20px 22px 10px; }
+.progress-dot { width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center; color: #fff; font-weight: 900; }
+.progress-dot.green { background: var(--green); }
+.progress-dot.orange { background: var(--orange); }
+.progress-dot.blue { background: var(--blue); }
+.mini-ring { width: 44px; height: 44px; transform: rotate(-90deg); }
+.mini-ring circle { fill: none; stroke-width: 5; }
+.mini-bg { stroke: #ecebf7; }
+.mini-fill { stroke: var(--purple); stroke-linecap: round; }
+.chart-card { margin: 10px 22px 24px; padding: 18px; background: #fbfbff; border-radius: 18px; border: 1px solid #f0effa; }
+.chart-title { font-size: .9rem; font-weight: 900; margin-bottom: 12px; }
+.chart-svg { width: 100%; height: 150px; overflow: visible; }
+.chart-grid { stroke: #e7e5f2; stroke-width: 1; }
+.chart-line { fill: none; stroke: var(--purple); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.chart-area-fill { fill: rgba(108,63,224,.08); }
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(25,24,43,.52); backdrop-filter: blur(6px);
+  z-index: 200; display: none; align-items: flex-end; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal-sheet {
+  width: 100%; max-width: 420px; max-height: 88vh; overflow: auto;
+  background: #fff; border-radius: 26px 26px 0 0; padding: 22px 22px 36px;
+  animation: sheetIn .24s ease both;
+}
+@keyframes sheetIn { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-handle { width: 42px; height: 4px; background: #dedced; border-radius: 99px; margin: 0 auto 18px; }
+.modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+.modal-title { font-weight: 900; font-size: 1.08rem; }
+.modal-close { width: 34px; height: 34px; border: 0; border-radius: 50%; background: var(--soft); color: var(--muted); font-weight: 900; }
+.field { display: grid; gap: 7px; margin-bottom: 14px; }
+.field label { font-size: .76rem; font-weight: 900; }
+.field input, .field select {
+  width: 100%; border: 2px solid var(--line); background: #fbfbff;
+  border-radius: 14px; padding: 12px 13px; outline: 0;
+}
+.field input:focus, .field select:focus { border-color: var(--violet); }
+.swatches { display: grid; grid-template-columns: repeat(6, 1fr); gap: 9px; margin-bottom: 16px; }
+.swatch { aspect-ratio: 1; border: 3px solid transparent; border-radius: 50%; }
+.swatch.active { border-color: var(--ink); }
+.save-btn { width: 100%; border: 0; border-radius: 16px; padding: 14px; color: #fff; background: linear-gradient(135deg, var(--violet), var(--purple)); font-weight: 900; }
+.bottom-nav {
+  position: fixed; left: 50%; bottom: 0; transform: translateX(-50%);
+  width: 100%; max-width: 420px; background: #fff; border-top: 1px solid #f0eff8;
+  display: flex; justify-content: space-around; align-items: center; padding: 9px 0 18px; z-index: 100;
+  box-shadow: 0 -4px 20px rgba(0,0,0,.06);
+}
+.nav-item, .nav-center {
+  border: 0; background: transparent; color: var(--muted); font-weight: 900;
+}
+.nav-item { display: grid; justify-items: center; gap: 3px; min-width: 52px; padding: 7px 6px; border-radius: 14px; font-size: .62rem; }
+.nav-item span:first-child { font-size: 1.05rem; }
+.nav-item.active { color: var(--purple); background: #f0ebff; }
+.nav-center {
+  width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, var(--violet), var(--purple));
+  color: #fff; font-size: 1.45rem; box-shadow: 0 6px 20px rgba(108,63,224,.42); margin-top: -16px;
+}
+.coach {
+  position: fixed; inset: 0; z-index: 300; display: none; pointer-events: none;
+}
+.coach.show { display: block; }
+.coach-card {
+  position: absolute; left: 20px; right: 20px; bottom: 94px; max-width: 380px; margin: 0 auto;
+  background: #fff; border-radius: 18px; padding: 16px; box-shadow: 0 18px 60px rgba(18,14,40,.26);
+  pointer-events: auto; border: 1px solid #efedf8;
+}
+.coach-step { font-size: .72rem; color: var(--purple); font-weight: 900; margin-bottom: 5px; }
+.coach-title { font-weight: 900; margin-bottom: 5px; }
+.coach-text { color: var(--muted); font-size: .82rem; font-weight: 600; line-height: 1.45; }
+.coach-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+.coach-actions button { border: 0; border-radius: 12px; padding: 9px 12px; font-weight: 900; }
+.coach-skip { background: #f2f1fb; color: var(--muted); }
+.coach-next { background: var(--ink); color: #fff; }
+@media (max-width: 360px) {
+  .stats-grid { grid-template-columns: 1fr; }
+  .habit-grid { grid-template-columns: 1fr; }
+  .nav-item { min-width: 54px; }
+  .timer-ring { width: 190px; height: 190px; }
+  .timer-time { font-size: 2.35rem; }
+}
+
+/* Mobile-first Apple-like glass, clay and neumorphic polish */
+:root {
+  --ink: #15151d;
+  --muted: #747989;
+  --line: rgba(255,255,255,.58);
+  --soft: rgba(255,255,255,.64);
+  --purple: #7467f0;
+  --violet: #b996ff;
+  --green: #37c79a;
+  --orange: #ff9b55;
+  --blue: #4b8cff;
+  --rose: #ff6f91;
+  --soft-shadow: 0 24px 70px rgba(45,43,80,.16);
+  --card-shadow: 10px 14px 30px rgba(59,62,90,.1), inset 0 1px 0 rgba(255,255,255,.8);
+  --neo-inset: inset 8px 8px 18px rgba(166,171,189,.22), inset -8px -8px 18px rgba(255,255,255,.82);
+}
+body {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(185,150,255,.28), transparent 32%),
+    radial-gradient(circle at 88% 12%, rgba(75,140,255,.2), transparent 34%),
+    linear-gradient(180deg, #fbfbfd 0%, #eef1f8 100%);
+  display: flex;
+  justify-content: center;
+}
+.phone-shell {
+  max-width: 430px;
+  min-height: 100svh;
+  background: rgba(255,255,255,.72);
+  backdrop-filter: blur(28px) saturate(145%);
+  box-shadow: var(--soft-shadow);
+}
+.screen {
+  min-height: 100svh;
+  padding-bottom: calc(96px + env(safe-area-inset-bottom));
+}
+.home-header {
+  padding: calc(24px + env(safe-area-inset-top)) 22px 34px;
+  background:
+    linear-gradient(150deg, rgba(116,103,240,.95), rgba(185,150,255,.86) 72%, rgba(255,255,255,.2)),
+    radial-gradient(circle at 80% 18%, rgba(255,255,255,.62), transparent 24%);
+  border-bottom: 1px solid rgba(255,255,255,.36);
+}
+.avatar {
+  background: rgba(255,255,255,.24);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.55);
+  box-shadow: inset 8px 8px 18px rgba(255,255,255,.18), inset -8px -8px 20px rgba(68,45,130,.12);
+}
+.search-bar {
+  background: rgba(255,255,255,.2);
+  border: 1px solid rgba(255,255,255,.38);
+  border-radius: 18px;
+  padding: 12px 14px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.38);
+}
+.settings-top-btn {
+  background: rgba(255,255,255,.24);
+  color: #fff;
+  backdrop-filter: blur(12px);
+}
+.home-body {
+  background: rgba(250,251,255,.84);
+  backdrop-filter: blur(22px);
+}
+.stat-card {
+  border-radius: 22px;
+  padding: 14px 13px;
+  border: 1px solid rgba(255,255,255,.44);
+  box-shadow: 10px 14px 28px rgba(60,58,90,.12), inset -8px -8px 18px rgba(255,255,255,.16);
+}
+.stat-card.tasks { background: linear-gradient(145deg, #ff7c9b, #e64d78); }
+.stat-card.habits { background: linear-gradient(145deg, #5de2b8, #27aa84); }
+.stat-card.focus { background: linear-gradient(145deg, #72a8ff, #4777f1); }
+.stat-icon { border-radius: 12px; background: rgba(255,255,255,.28); }
+.task-input-row input,
+.add-task-row input,
+.field input,
+.field select {
+  border-color: rgba(255,255,255,.7);
+  background: rgba(255,255,255,.68);
+  border-radius: 18px;
+  padding: 12px 14px;
+  box-shadow: var(--neo-inset);
+}
+.icon-btn,
+.add-task-btn {
+  width: 46px;
+  height: 46px;
+  border-radius: 18px;
+  background: linear-gradient(145deg, #242536, #111119);
+  box-shadow: 8px 10px 20px rgba(20,20,32,.18), inset -5px -5px 12px rgba(255,255,255,.08);
+}
+.task-item,
+.focus-task,
+.progress-row,
+.chart-card {
+  border-radius: 22px;
+  background: rgba(255,255,255,.72);
+  border: 1px solid rgba(255,255,255,.74);
+  box-shadow: var(--card-shadow);
+}
+.page-header {
+  padding-top: calc(24px + env(safe-area-inset-top));
+  background: rgba(255,255,255,.5);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255,255,255,.58);
+}
+.settings-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.settings-header > div {
+  min-width: 0;
+}
+.back-btn {
+  color: var(--ink);
+  background: rgba(255,255,255,.68);
+  box-shadow: var(--neo-inset);
+  flex: 0 0 auto;
+}
+.week-day {
+  border-radius: 18px;
+  background: rgba(255,255,255,.7);
+  box-shadow: var(--neo-inset);
+}
+.habit-card {
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,.48);
+  box-shadow: 10px 14px 28px rgba(56,58,86,.1), inset -8px -8px 18px rgba(255,255,255,.26);
+}
+.timer-panel {
+  background:
+    radial-gradient(circle at 76% 10%, rgba(255,255,255,.18), transparent 30%),
+    linear-gradient(150deg, #171823, #24253a 60%, #15151d);
+  border-radius: 32px;
+  border: 1px solid rgba(255,255,255,.14);
+  box-shadow: 0 26px 60px rgba(20,20,34,.28), inset 0 1px 0 rgba(255,255,255,.16);
+}
+.timer-session {
+  background: rgba(255,255,255,.09);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 20px;
+}
+.timer-ring {
+  filter: drop-shadow(0 18px 28px rgba(0,0,0,.22));
+}
+.ring-bg { stroke: rgba(255,255,255,.1); }
+.ring-fill { stroke: url(#timerGlow); }
+.timer-modes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.timer-modes button {
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.1);
+}
+.timer-modes button.active {
+  background: rgba(255,255,255,.9);
+  color: var(--ink);
+}
+.custom-timer {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+.custom-timer input {
+  min-width: 0;
+  border: 1px solid rgba(255,255,255,.14);
+  outline: 0;
+  color: #fff;
+  background: rgba(255,255,255,.09);
+  border-radius: 16px;
+  padding: 11px 12px;
+  box-shadow: inset 7px 7px 16px rgba(0,0,0,.18), inset -7px -7px 16px rgba(255,255,255,.04);
+}
+.custom-timer input::placeholder { color: rgba(255,255,255,.42); }
+.custom-timer button {
+  border: 0;
+  border-radius: 16px;
+  padding: 0 14px;
+  background: linear-gradient(145deg, #f7f8ff, #dfe4f5);
+  color: var(--ink);
+  font-weight: 900;
+}
+.primary-btn {
+  border-radius: 16px;
+  background: linear-gradient(145deg, #ffffff, #e9edf8);
+  box-shadow: 8px 10px 22px rgba(0,0,0,.18), inset -4px -4px 10px rgba(255,255,255,.8);
+}
+.ghost-btn {
+  border-radius: 16px;
+  background: rgba(255,255,255,.09);
+  backdrop-filter: blur(12px);
+}
+.track-header {
+  padding-top: calc(26px + env(safe-area-inset-top));
+  background:
+    linear-gradient(150deg, rgba(116,103,240,.95), rgba(185,150,255,.84)),
+    radial-gradient(circle at 82% 16%, rgba(255,255,255,.38), transparent 24%);
+}
+.modal-sheet {
+  max-width: 430px;
+  background: rgba(255,255,255,.86);
+  backdrop-filter: blur(24px) saturate(150%);
+  border-radius: 30px 30px 0 0;
+  padding-bottom: calc(36px + env(safe-area-inset-bottom));
+  border: 1px solid rgba(255,255,255,.72);
+}
+.bottom-nav {
+  max-width: 430px;
+  background: rgba(255,255,255,.72);
+  backdrop-filter: blur(24px) saturate(150%);
+  border-top: 1px solid rgba(255,255,255,.66);
+  padding-bottom: calc(18px + env(safe-area-inset-bottom));
+  box-shadow: 0 -12px 36px rgba(40,42,60,.08);
+}
+.nav-item.active {
+  background: rgba(255,255,255,.72);
+  box-shadow: var(--neo-inset);
+}
+@media (min-width: 520px) {
+  body { padding: 20px 0; }
+  .phone-shell { border-radius: 34px; min-height: calc(100svh - 40px); }
+  .bottom-nav { border-radius: 26px 26px 0 0; }
+}
+.welcome-wrap,
+.settings-body {
+  min-height: 100svh;
+  padding: calc(28px + env(safe-area-inset-top)) 22px calc(110px + env(safe-area-inset-bottom));
+  display: grid;
+  align-items: center;
+}
+.welcome-card,
+.settings-card {
+  background: rgba(255,255,255,.74);
+  border: 1px solid rgba(255,255,255,.76);
+  border-radius: 32px;
+  padding: 22px;
+  box-shadow: var(--soft-shadow), inset 0 1px 0 rgba(255,255,255,.84);
+  backdrop-filter: blur(24px) saturate(145%);
+}
+.welcome-orb {
+  width: 70px;
+  height: 70px;
+  border-radius: 24px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 18px;
+  color: #fff;
+  font-weight: 900;
+  background: linear-gradient(145deg, var(--purple), var(--violet));
+  box-shadow: 14px 18px 34px rgba(116,103,240,.24), inset -8px -8px 18px rgba(255,255,255,.18);
+}
+.welcome-title {
+  font-size: 2rem;
+  line-height: 1.04;
+  font-weight: 900;
+  letter-spacing: 0;
+  margin: 8px 0;
+}
+.welcome-copy {
+  color: var(--muted);
+  font-size: .9rem;
+  font-weight: 650;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+.shape-btn {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 18px;
+  background: rgba(255,255,255,.72);
+  box-shadow: var(--neo-inset);
+  font-size: 1.15rem;
+}
+.shape-wide {
+  width: 100%;
+  border: 0;
+  border-radius: 18px;
+  padding: 13px 14px;
+  background: rgba(255,255,255,.7);
+  box-shadow: var(--neo-inset);
+  color: var(--ink);
+  text-align: left;
+  font-weight: 900;
+}
+.icon-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+.icon-choice {
+  aspect-ratio: 1;
+  border: 1px solid rgba(255,255,255,.7);
+  border-radius: 20px;
+  background: rgba(255,255,255,.74);
+  box-shadow: var(--card-shadow);
+  font-size: 1.35rem;
+}
+.task-icon-shape {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border-radius: 15px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, rgba(255,255,255,.9), rgba(234,238,250,.82));
+  box-shadow: var(--neo-inset);
+  font-size: 1.05rem;
+}
+.edit-btn {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 10px;
+  color: var(--blue);
+  background: rgba(75,140,255,.12);
+  font-weight: 900;
+}
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 0;
+  border-top: 1px solid rgba(120,125,145,.12);
+}
+.setting-row strong,
+.setting-row span {
+  display: block;
+}
+.setting-row strong { font-size: .92rem; }
+.setting-row span {
+  color: var(--muted);
+  font-size: .76rem;
+  font-weight: 650;
+  margin-top: 3px;
+}
+.toggle-pill {
+  min-width: 58px;
+  border: 0;
+  border-radius: 999px;
+  padding: 9px 12px;
+  color: #fff;
+  background: linear-gradient(145deg, var(--purple), var(--violet));
+  font-weight: 900;
+}
+.toggle-pill.off {
+  color: var(--muted);
+  background: rgba(255,255,255,.62);
+  box-shadow: var(--neo-inset);
+}
+.danger-btn {
+  width: 100%;
+  border: 0;
+  border-radius: 16px;
+  padding: 14px;
+  margin-top: 10px;
+  color: #d8425d;
+  background: rgba(255,111,145,.12);
+  font-weight: 900;
+}
+.celebration-layer {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  overflow: hidden;
+}
+.confetti {
+  position: absolute;
+  width: 9px;
+  height: 14px;
+  border-radius: 4px;
+  animation: confettiFall .9s cubic-bezier(.15,.7,.25,1) forwards;
+}
+@keyframes confettiFall {
+  0% { transform: translateY(0) rotate(0deg) scale(.9); opacity: 1; }
+  100% { transform: translateY(170px) rotate(240deg) scale(.55); opacity: 0; }
+}
+.task-item,
+.focus-task,
+.habit-card {
+  animation: landIn .28s cubic-bezier(.2,.9,.25,1.2) both;
+}
+.task-item.done,
+.focus-task.done,
+.habit-card.done {
+  animation: donePulse .34s ease both;
+}
+@keyframes landIn {
+  from { opacity: 0; transform: translateY(14px) scale(.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes donePulse {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.025); }
+  100% { transform: scale(1); }
+}
+body.dark {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(116,103,240,.32), transparent 34%),
+    radial-gradient(circle at 88% 12%, rgba(75,140,255,.18), transparent 34%),
+    linear-gradient(180deg, #10121a 0%, #181b27 100%);
+  color: #f7f8ff;
+}
+body.dark .home-header,
+body.dark .track-header {
+  background:
+    radial-gradient(circle at 82% 12%, rgba(185,150,255,.22), transparent 28%),
+    linear-gradient(150deg, #171923, #24283a 62%, #171923);
+  border-bottom-color: rgba(255,255,255,.12);
+}
+body.dark .search-bar {
+  background: rgba(255,255,255,.1);
+  border-color: rgba(255,255,255,.16);
+  box-shadow: inset 8px 8px 18px rgba(0,0,0,.18), inset -8px -8px 18px rgba(255,255,255,.04);
+}
+body.dark .search-mark {
+  background: rgba(255,255,255,.1);
+  color: rgba(255,255,255,.82);
+}
+body.dark .search-bar input {
+  color: #f7f8ff;
+}
+body.dark .search-bar input::placeholder {
+  color: rgba(255,255,255,.42);
+}
+body.dark .settings-top-btn {
+  background: rgba(255,255,255,.1);
+  border-color: rgba(255,255,255,.14);
+}
+body.dark .phone-shell,
+body.dark .home-body,
+body.dark .page-header,
+body.dark .bottom-nav,
+body.dark .modal-sheet,
+body.dark .welcome-card,
+body.dark .settings-card,
+body.dark .task-item,
+body.dark .focus-task,
+body.dark .progress-row,
+body.dark .chart-card {
+  background: rgba(29,31,45,.72);
+  border-color: rgba(255,255,255,.12);
+}
+body.dark .page-title,
+body.dark .section-title,
+body.dark .task-name,
+body.dark .focus-label,
+body.dark .empty-title,
+body.dark .welcome-title,
+body.dark .setting-row strong {
+  color: #f7f8ff;
+}
+body.dark input,
+body.dark select,
+body.dark .shape-btn,
+body.dark .shape-wide {
+  background: rgba(255,255,255,.08);
+  color: #f7f8ff;
+  border-color: rgba(255,255,255,.14);
+  box-shadow: inset 8px 8px 18px rgba(0,0,0,.24), inset -8px -8px 18px rgba(255,255,255,.04);
+}
+body.dark .nav-item.active,
+body.dark .empty-icon,
+body.dark .task-icon-shape,
+body.dark .back-btn {
+  background: rgba(255,255,255,.1);
+  box-shadow: inset 8px 8px 18px rgba(0,0,0,.22), inset -8px -8px 18px rgba(255,255,255,.04);
+  color: #f7f8ff;
+}
+body.onboarding .bottom-nav { display: none; }
+</style>
+</head>
+<body>
+<div class="phone-shell">
+  <main>
+    <section class="screen" id="screen-welcome">
+      <div class="welcome-wrap">
+        <div class="welcome-card">
+          <div class="welcome-orb">FD</div>
+          <div class="page-kicker">Set up your space</div>
+          <div class="welcome-title">Make FlowDesk feel like yours.</div>
+          <div class="welcome-copy">No email, phone, or private details. Just a name and a few app preferences.</div>
+          <div class="field">
+            <label for="profileName">What should we call you?</label>
+            <input id="profileName" placeholder="Example: Alex" maxlength="24">
+          </div>
+          <div class="field">
+            <label for="profileFocus">What do you mostly want help with?</label>
+            <select id="profileFocus">
+              <option>School work</option>
+              <option>Fitness</option>
+              <option>Reading</option>
+              <option>Creative work</option>
+              <option>Daily routine</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="profileTimer">Default focus timer</label>
+            <input id="profileTimer" type="number" min="1" max="180" inputmode="numeric" value="25">
+          </div>
+          <button class="save-btn" onclick="saveProfile()">Start FlowDesk</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen active" id="screen-home">
+      <div class="home-header">
+        <div class="top-row">
+          <div>
+            <div class="greeting" id="homeGreeting">Hello</div>
+            <div class="user-name">Start simple</div>
+          </div>
+          <div class="home-actions">
+            <button class="settings-top-btn" onclick="goScreen('settings')" aria-label="Open settings">&#9881;</button>
+            <div class="avatar">FD</div>
+          </div>
+        </div>
+        <label class="search-bar">
+          <span class="search-mark" aria-hidden="true">&#128269;</span>
+          <input id="searchInput" type="search" placeholder="Search your tasks">
+        </label>
+      </div>
+      <div class="home-body">
+        <div class="section-head">
+          <div class="section-title">Today</div>
+          <button class="link-btn" onclick="startTutorial()">Guide me</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card tasks"><div class="stat-icon">T</div><div><div class="stat-name">Tasks</div><div class="stat-value" id="taskCount">0</div></div></div>
+          <div class="stat-card habits"><div class="stat-icon">H</div><div><div class="stat-name">Habits</div><div class="stat-value" id="habitCount">0</div></div></div>
+          <div class="stat-card focus"><div class="stat-icon">F</div><div><div class="stat-name">Focus min</div><div class="stat-value" id="focusCount">0</div></div></div>
+        </div>
+        <div class="section-head">
+          <div class="section-title">Tasks</div>
+          <button class="link-btn" onclick="clearDoneTasks()">Clear done</button>
+        </div>
+        <div class="task-input-row" data-tour="task-input">
+          <input id="homeTaskInput" placeholder="Example: Finish math homework" maxlength="80">
+          <button class="shape-btn" id="taskIconBtn" onclick="openIconPicker('task')" aria-label="Pick task icon">&#x1F4CC;</button>
+          <button class="icon-btn" onclick="addHomeTask()" aria-label="Add task">+</button>
+        </div>
+        <div class="task-list" id="homeTasks"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-habits">
+      <div class="page-header">
+        <div class="page-kicker" id="habitGreeting">Good day</div>
+        <div class="page-title">Habits</div>
+      </div>
+      <div class="week-strip" id="weekStrip"></div>
+      <div class="habit-grid" id="habitCards"></div>
+    </section>
+
+    <section class="screen" id="screen-timer">
+      <div class="page-header">
+        <div class="page-kicker">Pomodoro timer</div>
+        <div class="page-title">Focus</div>
+      </div>
+      <div class="timer-wrap">
+        <div class="timer-panel">
+          <div class="timer-session">
+            <div class="timer-session-title" id="sessionName">Pick one focus task</div>
+            <div class="timer-session-sub" id="sessionSub">Add a task below, then press Start.</div>
+          </div>
+          <div class="timer-ring">
+            <svg viewBox="0 0 220 220" aria-hidden="true">
+              <defs>
+                <linearGradient id="timerGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#ffffff"></stop>
+                  <stop offset="55%" stop-color="#b996ff"></stop>
+                  <stop offset="100%" stop-color="#7467f0"></stop>
+                </linearGradient>
+              </defs>
+              <circle class="ring-bg" cx="110" cy="110" r="95"></circle>
+              <circle class="ring-fill" id="timerRing" cx="110" cy="110" r="95"></circle>
+            </svg>
+            <div class="timer-time" id="timerDisplay">25:00</div>
+          </div>
+          <div class="timer-modes" id="timerModes">
+            <button class="active" onclick="setTimerMode(25, this)">25</button>
+            <button onclick="setTimerMode(15, this)">15</button>
+            <button onclick="setTimerMode(10, this)">10</button>
+            <button onclick="setTimerMode(5, this)">5</button>
+          </div>
+          <div class="custom-timer">
+            <input id="customMinutes" type="number" min="1" max="180" inputmode="numeric" placeholder="Custom minutes">
+            <button onclick="setCustomTimer()">Set</button>
+          </div>
+          <div class="timer-actions" id="timerControls">
+            <button class="primary-btn" onclick="toggleTimer()">Start</button>
+            <button class="ghost-btn" onclick="resetTimer()">Reset</button>
+          </div>
+        </div>
+        <div class="focus-list-wrap">
+          <div class="section-head">
+            <div class="section-title">Focus tasks</div>
+            <button class="link-btn" onclick="clearDoneFocusTasks()">Clear done</button>
+          </div>
+          <div class="add-task-row">
+            <input id="timerTaskInput" placeholder="Example: Read chapter 1" maxlength="80">
+            <button class="shape-btn" id="focusIconBtn" onclick="openIconPicker('focus')" aria-label="Pick focus icon">&#x1F4CC;</button>
+            <button class="add-task-btn" onclick="addTimerTask()" aria-label="Add focus task">+</button>
+          </div>
+          <div class="task-list" id="timerTaskList"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-track">
+      <div class="track-header">
+        <div class="track-title">Progress</div>
+        <div class="track-copy" id="trackCopy">Add tasks or habits to build your chart.</div>
+      </div>
+      <div class="progress-list" id="progressList"></div>
+      <div class="chart-card">
+        <div class="chart-title">Last 7 days</div>
+        <svg class="chart-svg" id="chartSvg" viewBox="0 0 320 150" preserveAspectRatio="none"></svg>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-settings">
+      <div class="page-header settings-header">
+        <button class="back-btn" onclick="goScreen('home')" aria-label="Back to home">&#8592;</button>
+        <div>
+          <div class="page-kicker">Preferences</div>
+          <div class="page-title">Settings</div>
+        </div>
+      </div>
+      <div class="settings-body">
+        <div class="settings-card">
+          <div class="field">
+            <label for="settingsName">Display name</label>
+            <input id="settingsName" maxlength="24" placeholder="Your name">
+          </div>
+          <div class="field">
+            <label for="settingsDefaultTimer">Default timer minutes</label>
+            <input id="settingsDefaultTimer" type="number" min="1" max="180" inputmode="numeric">
+          </div>
+          <div class="setting-row">
+            <div><strong>Button sounds</strong><span>Soft taps and completion tones</span></div>
+            <button class="toggle-pill" id="soundToggle" onclick="toggleSoundSetting()">On</button>
+          </div>
+          <div class="setting-row">
+            <div><strong>Dark theme</strong><span>Use a deeper glass look</span></div>
+            <button class="toggle-pill" id="themeToggle" onclick="toggleThemeSetting()">Off</button>
+          </div>
+          <button class="save-btn" onclick="saveSettings()">Save settings</button>
+          <button class="danger-btn" onclick="resetAllData()">Reset all data</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav" aria-label="Main navigation">
+    <button class="nav-item active" id="nav-home" onclick="goScreen('home')"><span>H</span><span>Home</span></button>
+    <button class="nav-item" id="nav-habits" onclick="goScreen('habits')"><span>Hb</span><span>Habits</span></button>
+    <button class="nav-center" onclick="openAddModal()" aria-label="Create habit">+</button>
+    <button class="nav-item" id="nav-timer" onclick="goScreen('timer')"><span>25</span><span>Timer</span></button>
+    <button class="nav-item" id="nav-track" onclick="goScreen('track')"><span>%</span><span>Track</span></button>
+  </nav>
+</div>
+
+<div class="modal-overlay" id="addModal" onclick="handleOverlayClick(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-head">
+      <div class="modal-title">Create a habit</div>
+      <button class="modal-close" onclick="closeAddModal()" aria-label="Close">x</button>
+    </div>
+    <div class="field">
+      <label for="newHabitName">Habit name</label>
+      <input id="newHabitName" placeholder="Example: Drink water" maxlength="40">
+    </div>
+    <div class="field">
+      <label>Icon shape</label>
+      <button class="shape-wide" id="habitIconBtn" onclick="openIconPicker('habit')">&#x1F331; Pick an icon</button>
+    </div>
+    <div class="field">
+      <label for="newHabitDesc">Small goal</label>
+      <input id="newHabitDesc" placeholder="Example: 4 glasses today" maxlength="60">
+    </div>
+    <div class="field">
+      <label for="newHabitInterval">Repeat</label>
+      <select id="newHabitInterval">
+        <option>Every day</option>
+        <option>Weekdays only</option>
+        <option>Weekends only</option>
+        <option>3x per week</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Color</label>
+      <div class="swatches" id="colorGrid"></div>
+    </div>
+    <button class="save-btn" onclick="saveHabit()">Add habit</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="iconModal" onclick="handleIconOverlayClick(event)">
+  <div class="modal-sheet icon-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-head">
+      <div class="modal-title">Choose an icon</div>
+      <button class="modal-close" onclick="closeIconPicker()" aria-label="Close">x</button>
+    </div>
+    <div class="icon-choice-grid" id="iconChoiceGrid"></div>
+  </div>
+</div>
+
+<div class="celebration-layer" id="celebrationLayer" aria-hidden="true"></div>
+
+<div class="coach" id="coach">
+  <div class="coach-card">
+    <div class="coach-step" id="coachStep">Step 1 of 4</div>
+    <div class="coach-title" id="coachTitle">Add your first task</div>
+    <div class="coach-text" id="coachText">Type one small thing you want to finish today, then tap +.</div>
+    <div class="coach-actions">
+      <button class="coach-skip" onclick="finishTutorial()">Skip</button>
+      <button class="coach-next" onclick="nextTutorial()" id="coachNext">Next</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORE = {
+  tasks: "flowdesk_tasks_v1",
+  habits: "flowdesk_habits_v1",
+  focus: "flowdesk_focus_tasks_v1",
+  stats: "flowdesk_timer_stats_v1",
+  tutorial: "flowdesk_tutorial_done_v1",
+  profile: "flowdesk_profile_v1",
+  settings: "flowdesk_settings_v1"
+};
+const load = (key, fallback) => {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+};
+const save = (key, value) => localStorage.setItem(key, JSON.stringify(value));
+const clean = (value) => String(value).replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]));
+const todayKey = () => new Date().toISOString().slice(0, 10);
+const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const colorNames = ["yellow", "pink", "blue", "green", "orange", "purple"];
+const colorMap = { yellow:"#ffd166", pink:"#ff9dc5", blue:"#a8d8ff", green:"#a9eecf", orange:"#ffb86c", purple:"#c9b8ff" };
+const iconChoices = ["\uD83D\uDCCC", "\uD83D\uDCDA", "\uD83D\uDEB4", "\uD83D\uDCA7", "\uD83C\uDFC3", "\u270D\uFE0F", "\uD83D\uDCBB", "\uD83C\uDFA7", "\uD83E\uDDD8", "\uD83C\uDF4E", "\uD83C\uDFA8", "\uD83E\uDDE0", "\uD83E\uDDF9", "\uD83D\uDECF\uFE0F", "\u2615"];
+
+let tasks = load(STORE.tasks, []);
+let habits = load(STORE.habits, []);
+let focusTasks = load(STORE.focus, []);
+let timerStats = load(STORE.stats, { sessions: 0, focusMins: 0, completions: {} });
+let profile = load(STORE.profile, null);
+let settings = load(STORE.settings, { name: "", sound: true, dark: false, defaultTimer: 25 });
+if (!profile && settings.name) {
+  profile = { name: settings.name, focus: "Daily routine" };
+  save(STORE.profile, profile);
+}
+let selectedColor = "yellow";
+let selectedTaskIcon = "\uD83D\uDCCC";
+let selectedHabitIcon = "\uD83C\uDF31";
+let selectedFocusIcon = "\uD83D\uDCCC";
+let iconPickerTarget = "task";
+let currentScreen = "home";
+let audioCtx;
+let timerTotal = (Number(settings.defaultTimer) || 25) * 60;
+let timeLeft = timerTotal;
+let timerRunning = false;
+let timerHandle = null;
+let tutorialStep = 0;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function tone(freq, start, duration, volume, type = "sine") {
+  const ctx = getAudioCtx();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+  gain.gain.setValueAtTime(0.0001, ctx.currentTime + start);
+  gain.gain.exponentialRampToValueAtTime(volume, ctx.currentTime + start + 0.015);
+  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + duration);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(ctx.currentTime + start);
+  osc.stop(ctx.currentTime + start + duration + 0.02);
+}
+function btnSound(type = "tap") {
+  if (!settings.sound) return;
+  try {
+    if (type === "success") {
+      tone(523, 0, .09, .035);
+      tone(659, .08, .14, .03);
+    } else if (type === "timer-end") {
+      tone(392, 0, .22, .045);
+      tone(523, .18, .28, .04);
+      tone(659, .4, .34, .035);
+    } else if (type === "toggle") {
+      tone(420, 0, .08, .025, "triangle");
+    } else {
+      tone(520, 0, .055, .018, "triangle");
+    }
+  } catch {}
+}
+
+function haptic(pattern = 18) {
+  if (navigator.vibrate) navigator.vibrate(pattern);
+}
+
+function celebrate() {
+  const layer = document.getElementById("celebrationLayer");
+  const colors = ["#7467f0", "#b996ff", "#37c79a", "#ff9b55", "#ff6f91", "#4b8cff"];
+  layer.innerHTML = "";
+  for (let i = 0; i < 22; i++) {
+    const piece = document.createElement("span");
+    piece.className = "confetti";
+    piece.style.left = `${12 + Math.random() * 76}%`;
+    piece.style.top = `${22 + Math.random() * 28}%`;
+    piece.style.background = colors[i % colors.length];
+    piece.style.animationDelay = `${Math.random() * .18}s`;
+    layer.appendChild(piece);
+  }
+  haptic([18, 40, 24]);
+  setTimeout(() => { layer.innerHTML = ""; }, 1200);
+}
+
+function setGreeting() {
+  const hour = new Date().getHours();
+  const text = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const name = settings.name || (profile && profile.name) || "";
+  document.getElementById("homeGreeting").textContent = name ? `${text}, ${name}` : text;
+  document.getElementById("habitGreeting").textContent = text;
+  document.querySelector(".user-name").textContent = profile ? (profile.focus || "Start simple") : "Start simple";
+  document.querySelector(".avatar").textContent = (name || "FD").slice(0, 2).toUpperCase();
+}
+
+function applyTheme() {
+  document.body.classList.toggle("dark", !!settings.dark);
+}
+
+function saveProfile() {
+  const name = document.getElementById("profileName").value.trim() || "Friend";
+  const focus = document.getElementById("profileFocus").value;
+  const timer = Math.max(1, Math.min(180, Number(document.getElementById("profileTimer").value) || 25));
+  profile = { name, focus };
+  settings.name = name;
+  settings.defaultTimer = timer;
+  save(STORE.profile, profile);
+  save(STORE.settings, settings);
+  setTimerMode(timer, null);
+  setGreeting();
+  renderSettings();
+  btnSound("success");
+  goScreen("home");
+}
+
+function renderSettings() {
+  const name = settings.name || (profile && profile.name) || "";
+  document.getElementById("settingsName").value = name;
+  document.getElementById("settingsDefaultTimer").value = settings.defaultTimer || 25;
+  document.getElementById("soundToggle").textContent = settings.sound ? "On" : "Off";
+  document.getElementById("soundToggle").classList.toggle("off", !settings.sound);
+  document.getElementById("themeToggle").textContent = settings.dark ? "On" : "Off";
+  document.getElementById("themeToggle").classList.toggle("off", !settings.dark);
+}
+
+function toggleSoundSetting() {
+  settings.sound = !settings.sound;
+  save(STORE.settings, settings);
+  if (settings.sound) btnSound("success");
+  renderSettings();
+}
+
+function toggleThemeSetting() {
+  settings.dark = !settings.dark;
+  save(STORE.settings, settings);
+  applyTheme();
+  btnSound();
+  renderSettings();
+}
+
+function saveSettings() {
+  const name = document.getElementById("settingsName").value.trim() || "Friend";
+  const timer = Math.max(1, Math.min(180, Number(document.getElementById("settingsDefaultTimer").value) || 25));
+  settings.name = name;
+  settings.defaultTimer = timer;
+  profile = { ...(profile || {}), name, focus: (profile && profile.focus) || "Daily routine" };
+  save(STORE.settings, settings);
+  save(STORE.profile, profile);
+  if (!timerRunning) setTimerMode(timer, null);
+  setGreeting();
+  btnSound("success");
+  renderSettings();
+}
+
+function resetAllData() {
+  if (!confirm("Reset tasks, habits, timer stats, and setup data?")) return;
+  Object.values(STORE).forEach((key) => localStorage.removeItem(key));
+  tasks = [];
+  habits = [];
+  focusTasks = [];
+  timerStats = { sessions: 0, focusMins: 0, completions: {} };
+  profile = null;
+  settings = { name: "", sound: true, dark: false, defaultTimer: 25 };
+  timerTotal = 25 * 60;
+  timeLeft = timerTotal;
+  applyTheme();
+  updateTimerDisplay();
+  renderAll();
+  goScreen("welcome");
+}
+
+function goScreen(screen) {
+  btnSound();
+  currentScreen = screen;
+  document.body.classList.toggle("onboarding", screen === "welcome");
+  document.querySelectorAll(".screen").forEach((item) => item.classList.remove("active"));
+  document.getElementById("screen-" + screen).classList.add("active");
+  document.querySelectorAll(".nav-item").forEach((item) => item.classList.remove("active"));
+  const nav = document.getElementById("nav-" + screen);
+  if (nav) nav.classList.add("active");
+  if (screen === "settings") renderSettings();
+  renderAll();
+}
+
+function renderStats() {
+  document.getElementById("taskCount").textContent = tasks.filter((t) => !t.done).length;
+  document.getElementById("habitCount").textContent = habits.length;
+  document.getElementById("focusCount").textContent = timerStats.focusMins || 0;
+}
+
+function addHomeTask() {
+  const input = document.getElementById("homeTaskInput");
+  const value = input.value.trim();
+  if (!value) {
+    input.focus();
+    return;
+  }
+  tasks.unshift({ id: Date.now(), name: value, icon: selectedTaskIcon, done: false, created: todayKey(), completed: null });
+  input.value = "";
+  save(STORE.tasks, tasks);
+  btnSound("success");
+  haptic(12);
+  renderAll();
+}
+function toggleTask(id) {
+  const task = tasks.find((item) => item.id === id);
+  if (!task) return;
+  task.done = !task.done;
+  task.completed = task.done ? todayKey() : null;
+  save(STORE.tasks, tasks);
+  btnSound("toggle");
+  if (task.done) celebrate();
+  renderAll();
+}
+function editTask(id) {
+  const task = tasks.find((item) => item.id === id);
+  if (!task) return;
+  const next = prompt("Edit task", task.name);
+  if (next === null) return;
+  const value = next.trim();
+  if (!value) return;
+  task.name = value;
+  save(STORE.tasks, tasks);
+  btnSound("success");
+  renderAll();
+}
+function deleteTask(id) {
+  tasks = tasks.filter((item) => item.id !== id);
+  save(STORE.tasks, tasks);
+  btnSound();
+  renderAll();
+}
+function clearDoneTasks() {
+  tasks = tasks.filter((item) => !item.done);
+  save(STORE.tasks, tasks);
+  btnSound();
+  renderAll();
+}
+function renderHomeTasks() {
+  const search = document.getElementById("searchInput").value.trim().toLowerCase();
+  const visible = tasks.filter((task) => task.name.toLowerCase().includes(search));
+  const el = document.getElementById("homeTasks");
+  if (!visible.length) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">+</div>
+      <div class="empty-title">${tasks.length ? "No matching tasks" : "No tasks yet"}</div>
+      <div class="empty-copy">${tasks.length ? "Try a different search word." : "Add one small task above. Beginners win by starting tiny."}</div>
+    </div>`;
+    return;
+  }
+  el.innerHTML = visible.map((task) => `<div class="task-item ${task.done ? "done" : ""}">
+    <div class="task-icon-shape">${task.icon || "\uD83D\uDCCC"}</div>
+    <button class="task-check" onclick="toggleTask(${task.id})" aria-label="Toggle task">${task.done ? "✓" : ""}</button>
+    <div class="task-info">
+      <div class="task-name">${clean(task.name)}</div>
+      <div class="task-sub">${task.done ? "Completed today" : "Tap the circle when done"}</div>
+    </div>
+    <button class="edit-btn" onclick="editTask(${task.id})" aria-label="Edit task">Edit</button>
+    <button class="delete-btn" onclick="deleteTask(${task.id})" aria-label="Delete task">x</button>
+  </div>`).join("");
+}
+
+function openAddModal() {
+  btnSound();
+  selectedColor = "yellow";
+  selectedHabitIcon = "\uD83C\uDF31";
+  document.getElementById("newHabitName").value = "";
+  document.getElementById("newHabitDesc").value = "";
+  document.getElementById("habitIconBtn").textContent = `${selectedHabitIcon} Pick an icon`;
+  renderColorGrid();
+  document.getElementById("addModal").classList.add("open");
+  setTimeout(() => document.getElementById("newHabitName").focus(), 60);
+}
+function closeAddModal() {
+  btnSound();
+  document.getElementById("addModal").classList.remove("open");
+}
+function handleOverlayClick(event) {
+  if (event.target.id === "addModal") closeAddModal();
+}
+function renderColorGrid() {
+  document.getElementById("colorGrid").innerHTML = colorNames.map((name) =>
+    `<button class="swatch ${name === selectedColor ? "active" : ""}" style="background:${colorMap[name]}" onclick="selectColor('${name}')" aria-label="${name}"></button>`
+  ).join("");
+}
+function selectColor(name) {
+  selectedColor = name;
+  btnSound();
+  renderColorGrid();
+}
+
+function openIconPicker(target) {
+  iconPickerTarget = target;
+  btnSound();
+  document.getElementById("iconChoiceGrid").innerHTML = iconChoices.map((icon) =>
+    `<button class="icon-choice" onclick="selectIconShape('${icon}')">${icon}</button>`
+  ).join("");
+  document.getElementById("iconModal").classList.add("open");
+}
+
+function closeIconPicker() {
+  btnSound();
+  document.getElementById("iconModal").classList.remove("open");
+}
+
+function handleIconOverlayClick(event) {
+  if (event.target.id === "iconModal") closeIconPicker();
+}
+
+function selectIconShape(icon) {
+  if (iconPickerTarget === "habit") {
+    selectedHabitIcon = icon;
+    document.getElementById("habitIconBtn").textContent = `${icon} Pick an icon`;
+  } else if (iconPickerTarget === "focus") {
+    selectedFocusIcon = icon;
+    document.getElementById("focusIconBtn").textContent = icon;
+  } else {
+    selectedTaskIcon = icon;
+    document.getElementById("taskIconBtn").textContent = icon;
+  }
+  btnSound("success");
+  closeIconPicker();
+}
+
+function saveHabit() {
+  const name = document.getElementById("newHabitName").value.trim();
+  const desc = document.getElementById("newHabitDesc").value.trim();
+  const interval = document.getElementById("newHabitInterval").value;
+  if (!name) {
+    document.getElementById("newHabitName").focus();
+    return;
+  }
+  habits.unshift({ id: Date.now(), name, desc: desc || interval, icon: selectedHabitIcon, color: selectedColor, interval, log: {} });
+  save(STORE.habits, habits);
+  closeAddModal();
+  btnSound("success");
+  haptic(18);
+  goScreen("habits");
+}
+function toggleHabit(id) {
+  const habit = habits.find((item) => item.id === id);
+  if (!habit) return;
+  const key = todayKey();
+  if (habit.log[key]) delete habit.log[key];
+  else habit.log[key] = true;
+  save(STORE.habits, habits);
+  btnSound("toggle");
+  if (habit.log[key]) celebrate();
+  renderAll();
+}
+function editHabit(id) {
+  const habit = habits.find((item) => item.id === id);
+  if (!habit) return;
+  const next = prompt("Edit habit", habit.name);
+  if (next === null) return;
+  const value = next.trim();
+  if (!value) return;
+  habit.name = value;
+  save(STORE.habits, habits);
+  btnSound("success");
+  renderAll();
+}
+function deleteHabit(id) {
+  habits = habits.filter((item) => item.id !== id);
+  save(STORE.habits, habits);
+  btnSound();
+  renderAll();
+}
+function calcStreak(habit) {
+  let streak = 0;
+  const cursor = new Date();
+  while (true) {
+    const key = cursor.toISOString().slice(0, 10);
+    if (!habit.log[key]) break;
+    streak++;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return streak;
+}
+function renderWeek() {
+  const today = todayKey();
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    days.push(d);
+  }
+  document.getElementById("weekStrip").innerHTML = days.map((d) => {
+    const key = d.toISOString().slice(0, 10);
+    const hasDone = habits.some((habit) => habit.log[key]);
+    const cls = key === today ? "today" : hasDone ? "done" : "";
+    return `<div class="week-day ${cls}"><span>${weekDays[d.getDay()]}</span><strong>${d.getDate()}</strong></div>`;
+  }).join("");
+}
+function renderHabits() {
+  renderWeek();
+  const el = document.getElementById("habitCards");
+  if (!habits.length) {
+    el.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="empty-icon">+</div>
+      <div class="empty-title">No habits yet</div>
+      <div class="empty-copy">Tap the big + button below and create one easy daily habit.</div>
+    </div>`;
+    return;
+  }
+  el.innerHTML = habits.map((habit) => renderHabitCard(habit)).join("");
+}
+
+function renderHabitCard(habit) {
+  const done = !!habit.log[todayKey()];
+  const streak = calcStreak(habit);
+  return `<div class="habit-card ${habit.color} ${done ? "done" : ""}" onclick="toggleHabit(${habit.id})">
+    <div class="habit-top">
+      <div class="habit-icon">${habit.icon || habit.name.charAt(0).toUpperCase()}</div>
+      <div class="habit-mark">${done ? "✓" : ""}</div>
+    </div>
+    <div>
+      <div class="habit-name">${clean(habit.name)}</div>
+      <div class="habit-desc">${clean(habit.desc || habit.interval)}</div>
+      <div class="habit-streak">${streak ? streak + " day streak" : habit.interval}</div>
+    </div>
+    <div class="habit-actions">
+      <button class="edit-btn" onclick="event.stopPropagation();editHabit(${habit.id})" aria-label="Edit habit">Edit</button>
+      <button class="delete-btn" onclick="event.stopPropagation();deleteHabit(${habit.id})" aria-label="Delete habit">x</button>
+    </div>
+  </div>`;
+}
+function setSessionFromTask(label) {
+  document.getElementById("sessionName").textContent = label || "Pick one focus task";
+  document.getElementById("sessionSub").textContent = label ? "Current focus session" : "Add a task below, then press Start.";
+}
+function addTimerTask() {
+  const input = document.getElementById("timerTaskInput");
+  const value = input.value.trim();
+  if (!value) {
+    input.focus();
+    return;
+  }
+  focusTasks.unshift({ id: Date.now(), label: value, icon: selectedFocusIcon, done: false, created: todayKey(), completed: null });
+  input.value = "";
+  save(STORE.focus, focusTasks);
+  setSessionFromTask(value);
+  btnSound("success");
+  renderAll();
+}
+function toggleTimerTask(id) {
+  const task = focusTasks.find((item) => item.id === id);
+  if (!task) return;
+  task.done = !task.done;
+  task.completed = task.done ? todayKey() : null;
+  save(STORE.focus, focusTasks);
+  btnSound("toggle");
+  if (task.done) celebrate();
+  renderAll();
+}
+function editTimerTask(id) {
+  const task = focusTasks.find((item) => item.id === id);
+  if (!task) return;
+  const next = prompt("Edit focus task", task.label);
+  if (next === null) return;
+  const value = next.trim();
+  if (!value) return;
+  task.label = value;
+  save(STORE.focus, focusTasks);
+  btnSound("success");
+  renderAll();
+}
+function deleteTimerTask(id) {
+  focusTasks = focusTasks.filter((item) => item.id !== id);
+  save(STORE.focus, focusTasks);
+  btnSound();
+  renderAll();
+}
+function clearDoneFocusTasks() {
+  focusTasks = focusTasks.filter((item) => !item.done);
+  save(STORE.focus, focusTasks);
+  btnSound();
+  renderAll();
+}
+function renderTimerTasks() {
+  const el = document.getElementById("timerTaskList");
+  const activeTask = focusTasks.find((item) => !item.done) || focusTasks[0];
+  setSessionFromTask(activeTask ? activeTask.label : "");
+  if (!focusTasks.length) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">F</div>
+      <div class="empty-title">No focus tasks yet</div>
+      <div class="empty-copy">Add one task, choose minutes, and press Start.</div>
+    </div>`;
+    return;
+  }
+  el.innerHTML = focusTasks.map((task) => `<div class="focus-task ${task.done ? "done" : ""}">
+    <div class="task-icon-shape">${task.icon || "\uD83D\uDCCC"}</div>
+    <button class="focus-check" onclick="toggleTimerTask(${task.id})" aria-label="Toggle focus task">${task.done ? "✓" : ""}</button>
+    <div class="focus-label">${clean(task.label)}</div>
+    <button class="edit-btn" onclick="editTimerTask(${task.id})" aria-label="Edit focus task">Edit</button>
+    <button class="delete-btn" onclick="deleteTimerTask(${task.id})" aria-label="Delete focus task">x</button>
+  </div>`).join("");
+}
+const ringLength = 2 * Math.PI * 95;
+function formatTime(seconds) {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+}
+function updateTimerDisplay() {
+  document.getElementById("timerDisplay").textContent = formatTime(timeLeft);
+  document.getElementById("timerRing").style.strokeDasharray = ringLength;
+  document.getElementById("timerRing").style.strokeDashoffset = ringLength * (1 - timeLeft / timerTotal);
+  const navTimer = document.querySelector("#nav-timer span");
+  if (navTimer) navTimer.textContent = Math.round(timerTotal / 60);
+}
+function setTimerMode(minutes, button) {
+  if (timerRunning) return;
+  timerTotal = minutes * 60;
+  timeLeft = timerTotal;
+  document.querySelectorAll("#timerModes button").forEach((item) => item.classList.remove("active"));
+  if (button) button.classList.add("active");
+  btnSound();
+  updateTimerDisplay();
+}
+function setCustomTimer() {
+  if (timerRunning) return;
+  const input = document.getElementById("customMinutes");
+  const minutes = Math.max(1, Math.min(180, Number(input.value)));
+  if (!Number.isFinite(minutes)) {
+    input.focus();
+    return;
+  }
+  input.value = minutes;
+  document.querySelectorAll("#timerModes button").forEach((item) => item.classList.remove("active"));
+  setTimerMode(minutes, null);
+}
+function toggleTimer() {
+  btnSound();
+  if (timerRunning) {
+    pauseTimer();
+    return;
+  }
+  timerRunning = true;
+  document.getElementById("timerControls").innerHTML = `<button class="primary-btn" onclick="toggleTimer()">Pause</button><button class="ghost-btn" onclick="resetTimer()">Reset</button>`;
+  timerHandle = setInterval(() => {
+    timeLeft = Math.max(0, timeLeft - 1);
+    updateTimerDisplay();
+    if (timeLeft <= 0) finishTimer();
+  }, 1000);
+}
+function pauseTimer() {
+  clearInterval(timerHandle);
+  timerRunning = false;
+  document.getElementById("timerControls").innerHTML = `<button class="primary-btn" onclick="toggleTimer()">Start</button><button class="ghost-btn" onclick="resetTimer()">Reset</button>`;
+}
+function resetTimer() {
+  clearInterval(timerHandle);
+  timerRunning = false;
+  timeLeft = timerTotal;
+  document.getElementById("timerControls").innerHTML = `<button class="primary-btn" onclick="toggleTimer()">Start</button><button class="ghost-btn" onclick="resetTimer()">Reset</button>`;
+  btnSound();
+  updateTimerDisplay();
+}
+function finishTimer() {
+  clearInterval(timerHandle);
+  timerRunning = false;
+  timerStats.sessions += 1;
+  timerStats.focusMins += Math.round(timerTotal / 60);
+  const key = todayKey();
+  timerStats.completions[key] = (timerStats.completions[key] || 0) + 1;
+  save(STORE.stats, timerStats);
+  btnSound("timer-end");
+  resetTimer();
+  renderAll();
+}
+
+function completedForDate(key) {
+  const taskDone = tasks.filter((item) => item.completed === key).length;
+  const focusDone = focusTasks.filter((item) => item.completed === key).length;
+  const habitDone = habits.reduce((sum, habit) => sum + (habit.log[key] ? 1 : 0), 0);
+  const sessions = timerStats.completions[key] || 0;
+  return taskDone + focusDone + habitDone + sessions;
+}
+function renderTrack() {
+  const today = todayKey();
+  const openTasks = tasks.filter((item) => !item.done).length + focusTasks.filter((item) => !item.done).length;
+  const doneToday = completedForDate(today);
+  const habitsDone = habits.filter((habit) => habit.log[today]).length;
+  document.getElementById("trackCopy").textContent = doneToday
+    ? `Nice work: ${doneToday} action${doneToday === 1 ? "" : "s"} finished today.`
+    : "Add tasks or habits to build your chart.";
+  const rows = [
+    { name: "Done today", sub: "Tasks, habits, and focus sessions", value: doneToday, color: "green", pct: Math.min(100, doneToday * 20) },
+    { name: "Open tasks", sub: "Still waiting for you", value: openTasks, color: "orange", pct: openTasks ? Math.min(100, openTasks * 20) : 0 },
+    { name: "Habits checked", sub: `${habitsDone} of ${habits.length || 0} today`, value: habitsDone, color: "blue", pct: habits.length ? Math.round((habitsDone / habits.length) * 100) : 0 }
+  ];
+  document.getElementById("progressList").innerHTML = rows.map((row) => {
+    const offset = 107 * (1 - row.pct / 100);
+    return `<div class="progress-row">
+      <div class="progress-dot ${row.color}">${row.value}</div>
+      <div class="progress-info"><div class="task-name">${row.name}</div><div class="progress-sub">${row.sub}</div></div>
+      <svg class="mini-ring" viewBox="0 0 44 44"><circle class="mini-bg" cx="22" cy="22" r="17"></circle><circle class="mini-fill" cx="22" cy="22" r="17" stroke-dasharray="107" stroke-dashoffset="${offset}"></circle></svg>
+    </div>`;
+  }).join("");
+  drawChart();
+}
+function drawChart() {
+  const svg = document.getElementById("chartSvg");
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    days.push(d);
+  }
+  const values = days.map((d) => completedForDate(d.toISOString().slice(0, 10)));
+  const max = Math.max(1, ...values);
+  const points = values.map((value, index) => {
+    const x = 18 + index * 47;
+    const y = 122 - (value / max) * 92;
+    return [x, y];
+  });
+  const line = points.map((point) => point.join(",")).join(" ");
+  const fill = `18,132 ${line} 300,132`;
+  svg.innerHTML = `
+    <line class="chart-grid" x1="18" y1="30" x2="302" y2="30"></line>
+    <line class="chart-grid" x1="18" y1="76" x2="302" y2="76"></line>
+    <line class="chart-grid" x1="18" y1="122" x2="302" y2="122"></line>
+    <polygon class="chart-area-fill" points="${fill}"></polygon>
+    <polyline class="chart-line" points="${line}"></polyline>
+    ${points.map((point, index) => `<circle cx="${point[0]}" cy="${point[1]}" r="4.5" fill="#6c3fe0"></circle><text x="${point[0]}" y="146" text-anchor="middle" font-size="10" font-weight="800" fill="#8b8da3">${weekDays[days[index].getDay()]}</text>`).join("")}
+  `;
+}
+
+const tutorial = [
+  ["Add your first task", "Type one small thing you want to finish today, then tap +."],
+  ["Create one habit", "Tap the big + button at the bottom to add a repeat habit."],
+  ["Use the timer", "Open Timer, add a focus task, choose minutes, and press Start."],
+  ["Track progress", "The Track tab updates from your real tasks, habits, and timer sessions."]
+];
+function startTutorial() {
+  tutorialStep = 0;
+  document.getElementById("coach").classList.add("show");
+  renderTutorial();
+}
+function renderTutorial() {
+  const last = tutorialStep === tutorial.length - 1;
+  document.getElementById("coachStep").textContent = `Step ${tutorialStep + 1} of ${tutorial.length}`;
+  document.getElementById("coachTitle").textContent = tutorial[tutorialStep][0];
+  document.getElementById("coachText").textContent = tutorial[tutorialStep][1];
+  document.getElementById("coachNext").textContent = last ? "Done" : "Next";
+}
+function nextTutorial() {
+  if (tutorialStep >= tutorial.length - 1) {
+    finishTutorial();
+    return;
+  }
+  tutorialStep += 1;
+  if (tutorialStep === 1) goScreen("habits");
+  if (tutorialStep === 2) goScreen("timer");
+  if (tutorialStep === 3) goScreen("track");
+  renderTutorial();
+}
+function finishTutorial() {
+  localStorage.setItem(STORE.tutorial, "yes");
+  document.getElementById("coach").classList.remove("show");
+}
+
+function renderAll() {
+  renderStats();
+  renderHomeTasks();
+  renderHabits();
+  renderTimerTasks();
+  renderTrack();
+}
+document.getElementById("homeTaskInput").addEventListener("keydown", (event) => {
+  if (event.key === "Enter") addHomeTask();
+});
+document.getElementById("timerTaskInput").addEventListener("keydown", (event) => {
+  if (event.key === "Enter") addTimerTask();
+});
+document.getElementById("customMinutes").addEventListener("keydown", (event) => {
+  if (event.key === "Enter") setCustomTimer();
+});
+document.getElementById("searchInput").addEventListener("input", renderHomeTasks);
+document.getElementById("profileName").addEventListener("keydown", (event) => {
+  if (event.key === "Enter") saveProfile();
+});
+document.getElementById("profileTimer").addEventListener("keydown", (event) => {
+  if (event.key === "Enter") saveProfile();
+});
+document.getElementById("settingsDefaultTimer").addEventListener("keydown", (event) => {
+  if (event.key === "Enter") saveSettings();
+});
+applyTheme();
+setGreeting();
+updateTimerDisplay();
+document.getElementById("customMinutes").value = settings.defaultTimer || 25;
+renderSettings();
+renderAll();
+if (!profile) {
+  document.body.classList.add("onboarding");
+  document.querySelectorAll(".screen").forEach((item) => item.classList.remove("active"));
+  document.getElementById("screen-welcome").classList.add("active");
+}
+</script>
+</body>
+</html>
+
